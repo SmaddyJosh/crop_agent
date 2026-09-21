@@ -82,7 +82,7 @@ async def predict_image(file: UploadFile = File(...)):
     image = image.resize((IMAGE_SIZE, IMAGE_SIZE))
     
     #  Convert image to numpy array 
-    img_array = np.array(image, dtype=np.float32) / 255.0
+    img_array = np.array(image, dtype=np.float32)
     
     # Expand dimensions to create a batch of 1: shape becomes (1, 180, 180, 3)
     img_tensor = np.expand_dims(img_array, axis=0)

@@ -1,13 +1,15 @@
 import argparse
 from pathlib import Path
 import numpy as np
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 
 
 def load_image(path, img_size):
 	img = tf.keras.utils.load_img(path, target_size=img_size)
 	arr = tf.keras.utils.img_to_array(img)
-	arr = arr / 255.0
+	arr = arr
 	return np.expand_dims(arr, axis=0)
 
 
