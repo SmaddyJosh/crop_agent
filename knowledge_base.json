@@ -1,0 +1,30 @@
+{
+  "Bacterial_Spot": {
+    "description": "Bacterial infection causing dark, water-soaked spots.",
+    "recommendation": "Apply copper-based sprays; avoid overhead watering."
+  },
+  "Early_Blight": {
+    "description": "Fungal disease causing brown rings on lower leaves.",
+    "recommendation": "Remove affected leaves; apply fungicide."
+  },
+  "Healthy": {
+    "description": "No visible signs of disease.",
+    "recommendation": "Continue regular care."
+  },
+  "Late_blight": {
+    "description": "Serious fungal disease causing large brown lesions.",
+    "recommendation": "Destroy infected plants; apply fungicide."
+  },
+  "Leaf_Mold": {
+    "description": "Fungus causing pale green or yellow spots.",
+    "recommendation": "Improve air circulation; reduce humidity."
+  },
+  "Target_Spot": {
+    "description": "Fungal disease causing target-like lesions on leaves.",
+    "recommendation": "Improve airflow; use fungicides if severe."
+  },
+  "black_spot": {
+    "description": "Fungal disease causing black spots with fringed edges.",
+    "recommendation": "Remove diseased leaves; use fungicidal spray."
+  }
+}

@@ -1,12 +1,12 @@
 import io
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from PIL import Image
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, Security
+from fastapi import Depends, FastAPI, File, HTTPException, Security, UploadFile
 from fastapi.security import APIKeyHeader
+from PIL import Image
 
 
 API_KEY = "15374101225" 
@@ -98,9 +98,41 @@ async def predict_image(file: UploadFile = File(...)):
     else:
         predicted_label = str(predicted_class_index)
 
+    import json
+    
+    # ---------------------------------------------------------
+    # AGENT LOGIC (Step 2): Using a Knowledge Base
+    # ---------------------------------------------------------
+    # 1. Load the knowledge base
+    knowledge = {}
+    kb_path = Path("knowledge_base.json")
+    if kb_path.exists():
+        with open(kb_path, "r") as f:
+            knowledge = json.load(f)
+            
+    # 2. Retrieve information about the predicted crop/disease
+    crop_info = knowledge.get(predicted_label, {})
+    description = crop_info.get("description", "No detailed description available.")
+    recommendation = crop_info.get("recommendation", "No specific recommendations available.")
+
+    # 3. Formulate the response incorporating the knowledge base
+    if confidence < 0.7:
+        agent_response = (
+            f"I'm a bit uncertain (confidence: {confidence:.2f}), but this looks like it could be {predicted_label}. "
+            f"If it is {predicted_label}: {description} "
+            f"Recommendation: {recommendation}"
+        )
+    else:
+        agent_response = (
+            f"I am highly confident ({confidence:.2f}) this is {predicted_label}. "
+            f"{description} "
+            f"Recommendation: {recommendation}"
+        )
+
     return {
         "status": "success",
         "predicted_class": predicted_label,
         "confidence": confidence,
         "class_index": predicted_class_index,
+        "agent_response": agent_response,
     }

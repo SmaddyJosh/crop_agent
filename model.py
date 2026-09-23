@@ -1,7 +1,8 @@
 import argparse
+from pathlib import Path
+
 import tensorflow as tf
 from tensorflow.keras import layers, models
-from pathlib import Path
 
 
 

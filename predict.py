@@ -1,8 +1,10 @@
 import argparse
-from pathlib import Path
-import numpy as np
 import os
+from pathlib import Path
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+import numpy as np
 import tensorflow as tf
 
 
@@ -42,7 +44,7 @@ def main():
 		if cf.exists():
 			class_names = [l.strip() for l in cf.read_text().splitlines() if l.strip()]
 	else:
-		# If model has metadata (unlikely), try reading
+		
 		try:
 			class_names = model.class_names
 		except Exception:
