@@ -44,75 +44,263 @@ async def home():
     classes_list = "".join(f"<li>{c}</li>" for c in classes)
     html_content = """
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
-        <title>Test Crop Model</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Crop AI Agent</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
         <style>
-            body { font-family: sans-serif; margin: 40px; }
-            .container { max-width: 600px; margin: 0 auto; text-align: center; }
-            #preview { max-width: 300px; margin-top: 20px; }
-            .result { margin-top: 20px; font-weight: bold; font-size: 1.2em; }
-            .classes-list { text-align: left; margin-top: 30px; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: rgba(30, 41, 59, 0.7);
+                --primary: #3b82f6;
+                --primary-hover: #2563eb;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --border: rgba(255, 255, 255, 0.1);
+            }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                color: var(--text-main);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+            }
+            .app-container {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 2rem;
+                max-width: 1200px;
+                width: 100%;
+            }
+            .card {
+                background: var(--card-bg);
+                backdrop-filter: blur(12px);
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                padding: 2rem;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                display: flex;
+                flex-direction: column;
+            }
+            h2 { font-weight: 600; margin-bottom: 1rem; color: #fff; }
+            p { color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; }
+            
+            /* Upload Area */
+            .upload-area {
+                border: 2px dashed var(--primary);
+                border-radius: 12px;
+                padding: 2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                background: rgba(59, 130, 246, 0.05);
+            }
+            .upload-area:hover { background: rgba(59, 130, 246, 0.1); }
+            .upload-area input {
+                position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+                opacity: 0; cursor: pointer;
+            }
+            .preview-container {
+                margin-top: 1.5rem;
+                display: none;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+            }
+            #preview { width: 100%; display: block; }
+            
+            button {
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 1rem;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-top: 1.5rem;
+                width: 100%;
+            }
+            button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+            button:disabled { background: #475569; cursor: not-allowed; transform: none; }
+            
+            /* Chat Area */
+            .chat-container {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                min-height: 400px;
+            }
+            .chat-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding-right: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+            .message {
+                padding: 1rem;
+                border-radius: 12px;
+                max-width: 85%;
+                animation: fadeIn 0.3s ease;
+                line-height: 1.5;
+            }
+            .message.system {
+                background: rgba(255, 255, 255, 0.05);
+                align-self: flex-start;
+                border: 1px solid var(--border);
+            }
+            .message.agent {
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                align-self: flex-start;
+                color: white;
+            }
+            .message.user {
+                background: rgba(255,255,255,0.1);
+                align-self: flex-end;
+                border: 1px solid var(--border);
+            }
+            .chat-input-area {
+                display: flex;
+                gap: 0.5rem;
+                margin-top: auto;
+            }
+            input[type="text"] {
+                flex: 1;
+                padding: 1rem;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                background: rgba(0,0,0,0.2);
+                color: white;
+                font-family: inherit;
+            }
+            input[type="text"]:focus { outline: none; border-color: var(--primary); }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .loading {
+                display: inline-block;
+                width: 20px; height: 20px;
+                border: 3px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s ease-in-out infinite;
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            
+            @media (max-width: 768px) {
+                .app-container { grid-template-columns: 1fr; }
+            }
         </style>
     </head>
     <body>
-        <div class="container">
-            <h2>Upload an image to test the model</h2>
-            <input type="file" id="imageInput" accept="image/*" />
-            <br>
-            <img id="preview" src="#" alt="Image preview" style="display: none;" />
-            <br><br>
-            <button onclick="predict()">Predict</button>
-            <div class="result" id="result"></div>
-            
-            <div class="classes-list">
-                <h3>Supported Classes:</h3>
-                <ul>
-                    """ + classes_list + """
-                </ul>
+        <div class="app-container">
+            <!-- Left: Upload Card -->
+            <div class="card">
+                <h2>Crop Analysis</h2>
+                <p>Upload a photo of a leaf to identify diseases and get treatment recommendations.</p>
+                
+                <div class="upload-area">
+                    <input type="file" id="imageInput" accept="image/*" />
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <div style="font-weight: 600;">Click or drag image here</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">PNG, JPG up to 10MB</div>
+                </div>
+                
+                <div class="preview-container" id="previewContainer">
+                    <img id="preview" src="#" alt="Preview" />
+                </div>
+                
+                <button id="analyzeBtn" onclick="predict()" disabled>Analyze Crop</button>
+            </div>
+    
+            <!-- Right: Chat Card -->
+            <div class="card">
+                <h2>AI Agent Assistant</h2>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message system">
+                            Hello! I am your Crop AI Assistant. Please upload a photo on the left, and I will analyze it for diseases and give you treatment advice.
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ask a follow-up question (Coming soon...)" disabled />
+                        <button style="width: auto; margin-top: 0;" disabled>Send</button>
+                    </div>
+                </div>
             </div>
         </div>
-
+    
         <script>
             const input = document.getElementById('imageInput');
             const preview = document.getElementById('preview');
-            const resultDiv = document.getElementById('result');
-
+            const previewContainer = document.getElementById('previewContainer');
+            const chatMessages = document.getElementById('chatMessages');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+    
+            function addMessage(text, type) {
+                const msg = document.createElement('div');
+                msg.className = `message ${type}`;
+                msg.innerHTML = text;
+                chatMessages.appendChild(msg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+    
             input.onchange = evt => {
                 const [file] = input.files;
                 if (file) {
                     preview.src = URL.createObjectURL(file);
-                    preview.style.display = 'block';
-                    resultDiv.innerHTML = '';
+                    previewContainer.style.display = 'block';
+                    analyzeBtn.disabled = false;
                 }
             }
-
+    
             async function predict() {
-                if (!input.files[0]) {
-                    alert("Please select an image first!");
-                    return;
-                }
+                if (!input.files[0]) return;
+                
                 const formData = new FormData();
                 formData.append("file", input.files[0]);
-
-                resultDiv.innerHTML = "Predicting...";
+    
+                addMessage("Analyzing image...", "user");
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = '<div class="loading"></div>';
+    
                 try {
                     const response = await fetch("/predict", {
                         method: "POST",
                         body: formData
                     });
                     const data = await response.json();
+                    
                     if (data.error) {
-                        resultDiv.innerHTML = "Error: " + data.error;
+                        addMessage("Error: " + data.error, "system");
                     } else {
-                        let html = "Prediction: Class " + data.prediction + " <br> Confidence: " + data.confidence.toFixed(4);
+                        let conf = (data.confidence * 100).toFixed(1) + "%";
+                        // Display Agent Response
                         if (data.agent_response) {
-                            html += "<br><br><b>Agent says:</b><br>" + data.agent_response;
+                            addMessage(`<b>Prediction:</b> ${data.prediction} (${conf})<br><br>${data.agent_response}`, "agent");
+                        } else {
+                            addMessage(`<b>Prediction:</b> ${data.prediction} (${conf})`, "agent");
                         }
-                        resultDiv.innerHTML = html;
                     }
                 } catch (e) {
-                    resultDiv.innerHTML = "Error connecting to the API.";
+                    addMessage("Error connecting to the API.", "system");
+                } finally {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = 'Analyze Crop';
                 }
             }
         </script>

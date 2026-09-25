@@ -99,11 +99,7 @@ async def predict_image(file: UploadFile = File(...)):
         predicted_label = str(predicted_class_index)
 
     import json
-    
-    # ---------------------------------------------------------
-    # AGENT LOGIC (Step 2): Using a Knowledge Base
-    # ---------------------------------------------------------
-    # 1. Load the knowledge base
+   
     knowledge = {}
     kb_path = Path("knowledge_base.json")
     if kb_path.exists():
