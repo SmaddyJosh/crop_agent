@@ -101,3 +101,32 @@ if __name__ == '__main__':
 
     model.save(args.output)
     print('Saved model to', args.output)
+
+    # ---------------------------------------------------------
+    # Automatically generate confusion matrix after training
+    # ---------------------------------------------------------
+    print("Generating confusion matrix on test data...")
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    y_pred = []
+    y_true = []
+    
+    for x, y in test_ds:
+        preds = model.predict(x, verbose=0)
+        y_pred.extend(np.argmax(preds, axis=1))
+        y_true.extend(y.numpy())
+        
+    cm = tf.math.confusion_matrix(y_true, y_pred).numpy()
+    
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=train_ds.class_names, 
+                yticklabels=train_ds.class_names)
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.title('Confusion Matrix on Test Data')
+    plt.tight_layout()
+    plt.savefig('confusion_matrix.png')
+    print("Saved confusion matrix to confusion_matrix.png")
